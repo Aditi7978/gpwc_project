@@ -64,6 +64,49 @@ int main()
 	// How fast can the bee fly
 	float beeSpeed = 0.0f;
 	
+	Texture texturePlayer;
+	texturePlayer.loadFromFile("/home/student/Desktop/gpwc_2241004021/Project1 (1)/graphics/player.png");
+	Sprite spritePlayer;
+	spritePlayer.setTexture(texturePlayer);
+	spritePlayer.setPosition(580,720);
+
+	//Player starts on left
+	side playerSide=side::LEFT;
+
+	//control the player input
+	bool acceptInput=false;
+
+
+	//add gravestone
+	Texture textureRIP;
+	textureRIP.loadFromFile("/home/student/Desktop/gpwc_2241004021/Project1 (1)/graphics/rip.png");
+	Sprite spriteRIP;
+	spriteRIP.setTexture(textureRIP);
+	spriteRIP.setPosition(600,860);
+
+	//add axe
+	Texture textureAxe;
+	textureAxe.loadFromFile("/home/student/Desktop/gpwc_2241004021/Project1 (1)/graphics/axe.png");
+	Sprite spriteAxe;
+	spriteAxe.setTexture(textureAxe);
+	spriteAxe.setPosition(700,830);
+
+	//line the axe up with the tree
+	const float AXE_POSITION_LEFT=700;
+	const float AXE_POSITION_RIGHT=1075;
+
+	//add log
+	Texture textureLog;
+	textureLog.loadFromFile("/home/student/Desktop/gpwc_2241004021/Project1 (1)/graphics/log.png");
+	Sprite spriteLog;
+	spriteLog.setTexture(textureLog);
+	spriteLog.setPosition(810,720);
+
+	//some other useful log realted variables
+	bool logActive=false;
+	float logSpeedX=1000;
+	float logSpeedY=-1500;// when player moves from left to right and bottom to top,x increase and y decrease
+
 	// make 3 cloud sprites from 1 texture
 	Texture textureCloud;
 
@@ -159,19 +202,85 @@ int main()
 	//main loop
 	while (window.isOpen())
 	{		
-		/*
-		****************************************
-		Handle the players input
-		****************************************
-		*/
+		Event event;
+		while(window.pollEvent(event)){
+			if(event.type==Event::KeyReleased && !paused){
+				acceptInput=true;
+
+				spriteAxe.setPosition(2000,spriteAxe.getPosition().y);
+			}
+		}
 
 		if (Keyboard::isKeyPressed(Keyboard::Return)) {
             paused = false;
 			//reset the time and score
 			score=0;
 			timeRemaining=6;
-			//messageText.setString("");
+			
+			for(int i=1;i<NUM_BRANCHES;i++){ //disable all branches
+				branchPosition[i]=side::NONE;
+			}
+
+			//make the gravestone hidden
+			spriteRIP.setPosition(675,2000);
+
+			//move the player into left position
+			spritePlayer.setPosition(580,720);
+
+			acceptInput=true;
         }
+		if(acceptInput){
+			if(Keyboard::isKeyPressed(Keyboard::Right)){
+				playerSide=side::RIGHT;//makesure the player is on the right
+
+				score++;
+
+				//add the amount to the time remaining
+				timeRemaining += (2/score) + 15;
+
+				//set axe position
+				spriteAxe.setPosition(AXE_POSITION_RIGHT,spriteAxe.getPosition().y);
+
+				//set player position
+				spritePlayer.setPosition(1200,720);
+
+				updateBranches(score);
+
+				//set the log flying to the left
+				spriteLog.setPosition(810,720);
+				logSpeedX=-5000;
+				logActive=true;
+
+				acceptInput=false;
+
+				//play a chop sound
+			}
+			if(Keyboard::isKeyPressed(Keyboard::Left)){
+				playerSide=side::LEFT;//makesure the player is on the right
+
+				score++;
+
+				//add the amount to the time remaining
+				timeRemaining += (2/score) + 15;
+
+				//set axe position
+				spriteAxe.setPosition(AXE_POSITION_LEFT,spriteAxe.getPosition().y);
+
+				//set player position
+				spritePlayer.setPosition(580,720);
+
+				updateBranches(score);
+
+				//set the log flying to the left
+				spriteLog.setPosition(810,720);
+				logSpeedX=5000;
+				logActive=true;
+
+				acceptInput=false;
+
+				//play a chop sound
+			}
+		}
 		if (!paused) {
             Time dt = clock.restart();
             timeRemaining -= dt.asSeconds();
@@ -191,6 +300,7 @@ int main()
 		
 		if (Keyboard::isKeyPressed(Keyboard::Escape))
 		{
+			
 			window.close();
 		}
 
@@ -370,6 +480,10 @@ int main()
 			window.draw(branches[i]);
 		}
 		window.draw(spriteTree);
+		window.draw(spritePlayer);
+		window.draw(spriteAxe);
+		window.draw(spriteLog);
+		window.draw(spriteRIP);
 		window.draw(spriteBee);
 		window.draw(scoreText);
 		window.draw(timeBar);
