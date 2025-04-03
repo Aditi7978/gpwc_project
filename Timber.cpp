@@ -1,5 +1,6 @@
 // Include important C++ libraries here
 #include <SFML/Graphics.hpp>
+#include<SFML/Audio.hpp>
 #include <sstream>
 // Make code easier to type with "using namespace"
 using namespace sf;
@@ -64,6 +65,23 @@ int main()
 	// How fast can the bee fly
 	float beeSpeed = 0.0f;
 	
+
+	//sound
+	SoundBuffer chopBuffer;
+	chopBuffer.loadFromFile("/home/student/Desktop/gpwc_2241004021/Project1 (1)/sound/chop.wav");
+	Sound chop;
+	chop.setBuffer(chopBuffer);
+
+	SoundBuffer deathBuffer;
+	deathBuffer.loadFromFile("/home/student/Desktop/gpwc_2241004021/Project1 (1)/sound/death.wav");
+	Sound death;
+	death.setBuffer(deathBuffer);
+
+	SoundBuffer outOfTimeBuffer;
+	outOfTimeBuffer.loadFromFile("/home/student/Desktop/gpwc_2241004021/Project1 (1)/sound/out_of_time.wav");
+	Sound outOfTime;
+	outOfTime.setBuffer(outOfTimeBuffer);
+
 	Texture texturePlayer;
 	texturePlayer.loadFromFile("/home/student/Desktop/gpwc_2241004021/Project1 (1)/graphics/player.png");
 	Sprite spritePlayer;
@@ -254,6 +272,7 @@ int main()
 				acceptInput=false;
 
 				//play a chop sound
+				chop.play();
 			}
 			if(Keyboard::isKeyPressed(Keyboard::Left)){
 				playerSide=side::LEFT;//makesure the player is on the right
@@ -279,6 +298,8 @@ int main()
 				acceptInput=false;
 
 				//play a chop sound
+				chop.play();
+				
 			}
 		}
 		if (!paused) {
@@ -295,6 +316,8 @@ int main()
 				messageText.setOrigin(textRect.left+ textRect.width/2.0f,
 				textRect.top+ textRect.height/2.0f);
 				messageText.setPosition(1920/2.0f,1080/2.0f);
+
+				outOfTime.play();
                 
             }
 		
@@ -356,11 +379,9 @@ int main()
 			spriteCloud1.setPosition(-200, height);
 			cloud1Active = true;
 
-
 		}
 		else
 		{
-
 			spriteCloud1.setPosition(
 				spriteCloud1.getPosition().x +
 				(cloud1Speed * dt.asSeconds()),
@@ -458,7 +479,38 @@ int main()
 				branches[i].setPosition(3000,height);
 			}
 		}
+		//handle the log flying
+		if(logActive){
+			spriteLog.setPosition(spriteLog.getPosition().x + (logSpeedX * dt.asSeconds()),
+									spriteLog.getPosition().y + (logSpeedY * dt.asSeconds()));
+		}
+		if(spriteLog.getPosition().x <-100 || spriteLog.getPosition().x>2000){
+			logActive=false;
+			spriteLog.setPosition(810,720);
+		}
+		//has a player squished by branch
 
+		if(branchPosition[5]==playerSide){
+			//death
+			paused=true;
+			acceptInput=false;
+			//draw the gravestone
+			spriteRIP.setPosition(525,760);
+			//hide the player
+			spritePlayer.setPosition(2000,660);
+			//change the text message
+			messageText.setString("SQUISHED!!");
+			//center of the screen
+			FloatRect textRect=messageText.getLocalBounds();
+			messageText.setOrigin(textRect.left + textRect.width/2.0f,
+					textRect.top + textRect.height/2.0f);
+			messageText.setPosition(1920/2,1080/2);
+
+			//playsound
+			death.play();
+
+			
+		}
 	}
 		/*
 		****************************************
@@ -469,7 +521,6 @@ int main()
 		// Clear everything from the last frame
 		window.clear();
 
-		// Draw our game scene here
 		window.draw(spriteBackground);
 
 		// Draw the clouds
